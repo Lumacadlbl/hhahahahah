@@ -4,7 +4,7 @@ import java.sql.*;
 
 public class config {
     
-    // Connection Method to SQLITE
+    
     public static Connection connectDB() {
         Connection con = null;
         try {
@@ -17,7 +17,7 @@ public class config {
         return con;
     }
 
-    // Insert record (no return)
+    
     public void addRecord(String sql, Object... values) {
         try (Connection conn = this.connectDB();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -30,7 +30,7 @@ public class config {
         }
     }
 
-    // Insert record and return generated ID
+    
     public int addRecordReturnId(String sql, Object... values) {
         int id = -1;
         try (Connection conn = this.connectDB();
@@ -48,7 +48,7 @@ public class config {
         return id;
     }
 
-    // Update record
+   
     public void updateRecord(String sql, Object... values) {
         try (Connection conn = this.connectDB();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -61,7 +61,7 @@ public class config {
         }
     }
 
-    // Delete record
+    
     public void deleteRecord(String sql, Object... values) {
         try (Connection conn = this.connectDB();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -74,7 +74,7 @@ public class config {
         }
     }
 
-    // Fetch records
+    
     public ResultSet getRecords(String sql, Object... values) {
         ResultSet rs = null;
         try {
@@ -88,7 +88,7 @@ public class config {
         return rs;
     }
 
-    // Helper method to set parameters dynamically
+   
     private void setParameters(PreparedStatement pstmt, Object... values) throws SQLException {
         for (int i = 0; i < values.length; i++) {
             if (values[i] instanceof Integer) {

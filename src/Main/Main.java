@@ -24,7 +24,7 @@ public class Main {
             opt = sc.nextInt();
             sc.nextLine();
 
-            if (opt == 1) { // Reporter
+            if (opt == 1) { 
                 System.out.println("____________________________\n");
                 System.out.print("Enter your name: ");
                 repName = sc.nextLine();
@@ -32,33 +32,33 @@ public class Main {
                 int repContact = sc.nextInt();
                 sc.nextLine();
 
-                // Insert reporter
+                
                 String insertRep = "INSERT INTO rep_tbl (rep_name, rep_contact) VALUES (?, ?)";
                 int reporterId = conf.addRecordReturnId(insertRep, repName, repContact);
 
                 System.out.print("Item Found/Lost name: ");
                 itemName = sc.nextLine();
-                System.out.print("Category: ");
+                System.out.print("Category (Found/Lost): ");
                 itemCategory = sc.nextLine();
                 System.out.print("Description: ");
                 itemDesc = sc.nextLine();
                 System.out.print("Last seen: ");
                 lastSeen = sc.nextLine();
 
-                // Insert item
+             
                 String insertItem = "INSERT INTO item_tbl (item_name, item_category, item_description, last_seen) VALUES (?, ?, ?, ?)";
                 int itemId = conf.addRecordReturnId(insertItem, itemName, itemCategory, itemDesc, lastSeen);
 
                 System.out.print("Date reported: ");
                 dateReported = sc.nextLine();
 
-                // Link in report_tbl
+                
                 String insertReport = "INSERT INTO report_tbl (reporter_id, item_id, date_reported) VALUES (?, ?, ?)";
                 conf.addRecord(insertReport, reporterId, itemId, dateReported);
 
                 System.out.println("Report added successfully!");
 
-            } else if (opt == 2) { // Admin
+            } else if (opt == 2) { 
                 attem = 0;
                 while (attem < 3) {
                     System.out.print("Enter password: ");
@@ -81,7 +81,7 @@ public class Main {
                             System.out.println("____________________________\n");
 
                             switch (choi) {
-                                case 1: // View Reports
+                                case 1: 
                                     try {
                                         String query = "SELECT r.report_id, rep.rep_name, rep.rep_contact, i.item_name, i.item_category, i.item_description, i.last_seen, r.date_reported " +
                                                 "FROM report_tbl r " +
