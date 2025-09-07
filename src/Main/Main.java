@@ -11,8 +11,8 @@ public class Main {
         Scanner sc = new Scanner(System.in);
         config conf = new config();
 
-        int opt, con, pass, choi, attem = 0;
-        String cat, nm, des, item, seen, rep;
+        int opt, pass, choi, attem = 0;
+        String repName, itemName, itemCategory, itemDesc, lastSeen, dateReported;
         boolean run = true;
 
         while (run) {
@@ -24,28 +24,41 @@ public class Main {
             opt = sc.nextInt();
             sc.nextLine();
 
-            if (opt == 1) { 
+            if (opt == 1) { // Reporter
                 System.out.println("____________________________\n");
-                System.out.print("Enter name: ");
-                nm = sc.nextLine();
-                System.out.print("Enter contact: ");
-                con = sc.nextInt();
+                System.out.print("Enter your name: ");
+                repName = sc.nextLine();
+                System.out.print("Enter your contact: ");
+                int repContact = sc.nextInt();
                 sc.nextLine();
-                System.out.print("Item lost: ");
-                item = sc.nextLine();
-                System.out.print("Enter description: ");
-                des = sc.nextLine();
+
+                // Insert reporter
+                String insertRep = "INSERT INTO rep_tbl (rep_name, rep_contact) VALUES (?, ?)";
+                int reporterId = conf.addRecordReturnId(insertRep, repName, repContact);
+
+                System.out.print("Item Found/Lost name: ");
+                itemName = sc.nextLine();
+                System.out.print("Category: ");
+                itemCategory = sc.nextLine();
+                System.out.print("Description: ");
+                itemDesc = sc.nextLine();
                 System.out.print("Last seen: ");
-                seen = sc.nextLine();
-                System.out.print("Category (Lost/Found): ");
-                cat = sc.nextLine();
+                lastSeen = sc.nextLine();
+
+                // Insert item
+                String insertItem = "INSERT INTO item_tbl (item_name, item_category, item_description, last_seen) VALUES (?, ?, ?, ?)";
+                int itemId = conf.addRecordReturnId(insertItem, itemName, itemCategory, itemDesc, lastSeen);
+
                 System.out.print("Date reported: ");
-                rep = sc.nextLine();
+                dateReported = sc.nextLine();
 
-                String sql = "INSERT INTO lost_tbl (r_name, r_contact, r_item, r_descrip, r_loc, r_category, r_date) VALUES ( ?, ?, ?, ?, ?, ?, ?)";
-                conf.addRecord(sql, nm, con, item, des, seen, cat, rep);
+                // Link in report_tbl
+                String insertReport = "INSERT INTO report_tbl (reporter_id, item_id, date_reported) VALUES (?, ?, ?)";
+                conf.addRecord(insertReport, reporterId, itemId, dateReported);
 
-            } else if (opt == 2) { 
+                System.out.println("Report added successfully!");
+
+            } else if (opt == 2) { // Admin
                 attem = 0;
                 while (attem < 3) {
                     System.out.print("Enter password: ");
@@ -57,116 +70,70 @@ public class Main {
 
                         boolean adminMenu = true;
                         while (adminMenu) {
-                        System.out.println("____________________________\n");
-                        System.out.println("1. View Reports");
-                        System.out.println("2. Update Reports");
-                        System.out.println("3. Delete Reports");
-                        System.out.println("4. Logout");
-                        System.out.print("Enter Choice: ");
-                        choi = sc.nextInt();
-                        sc.nextLine();
-                        System.out.println("____________________________\n");
+                            System.out.println("____________________________\n");
+                            System.out.println("1. View Reports");
+                            System.out.println("2. Update Reports");
+                            System.out.println("3. Delete Reports");
+                            System.out.println("4. Logout");
+                            System.out.print("Enter Choice: ");
+                            choi = sc.nextInt();
+                            sc.nextLine();
+                            System.out.println("____________________________\n");
 
-                        switch (choi) {
-                        case 1: 
-                             try {
-                                String selectQuery = "SELECT * FROM lost_tbl";
-                                ResultSet rs = conf.getRecords(selectQuery);
-
-                                        
-                                System.out.printf("%-5s %-15s %-12s %-15s %-20s %-15s %-10s %-12s\n",
-                                "ID", "Name", "Contact", "Item", "Description", "Location", "Category", "Date");
-                                System.out.println("---------------------------------------------------------------------------------------------------------------");
-
-                                        
-                                while (rs.next()) {
-                                System.out.printf("%-5d %-15s %-12d %-15s %-20s %-15s %-10s %-12s\n",
-                                 rs.getInt("r_id"),
-                                 rs.getString("r_name"),
-                                 rs.getInt("r_contact"),
-                                 rs.getString("r_item"),
-                                 rs.getString("r_descrip"),
-                                 rs.getString("r_loc"),
-                                 rs.getString("r_category"),
-                                 rs.getString("r_date"));
-                                  }
-                                 System.out.println("---------------------------------------------------------------------------------------------------------------");
-
-                                    } catch (SQLException e) {
-                                        System.out.println("Error fetching records: " + e.getMessage());
-                                    }
-                                    break;
-
-                                case 2: 
+                            switch (choi) {
+                                case 1: // View Reports
                                     try {
-                                        
-                                        String selectQuery = "SELECT * FROM lost_tbl";
-                                        ResultSet rs = conf.getRecords(selectQuery);
-                                        System.out.printf("%-5s %-15s %-12s %-15s %-20s %-15s %-10s %-12s\n",
-                                                "ID", "Name", "Contact", "Item", "Description", "Location", "Category", "Date");
+                                        String query = "SELECT r.report_id, rep.rep_name, rep.rep_contact, i.item_name, i.item_category, i.item_description, i.last_seen, r.date_reported " +
+                                                "FROM report_tbl r " +
+                                                "JOIN rep_tbl rep ON r.reporter_id = rep.rep_id " +
+                                                "JOIN item_tbl i ON r.item_id = i.item_id";
+                                        ResultSet rs = conf.getRecords(query);
+
+                                        System.out.printf("%-5s %-15s %-12s %-15s %-12s %-20s %-15s %-12s\n",
+                                                "ID", "Reporter", "Contact", "Item", "Category", "Description", "Last Seen", "Date");
                                         System.out.println("---------------------------------------------------------------------------------------------------------------");
                                         while (rs.next()) {
-                                            System.out.printf("%-5d %-15s %-12d %-15s %-20s %-15s %-10s %-12s\n",
-                                                    rs.getInt("r_id"),
-                                                    rs.getString("r_name"),
-                                                    rs.getInt("r_contact"),
-                                                    rs.getString("r_item"),
-                                                    rs.getString("r_descrip"),
-                                                    rs.getString("r_loc"),
-                                                    rs.getString("r_category"),
-                                                    rs.getString("r_date"));
+                                            System.out.printf("%-5d %-15s %-12d %-15s %-12s %-20s %-15s %-12s\n",
+                                                    rs.getInt("report_id"),
+                                                    rs.getString("rep_name"),
+                                                    rs.getInt("rep_contact"),
+                                                    rs.getString("item_name"),
+                                                    rs.getString("item_category"),
+                                                    rs.getString("item_description"),
+                                                    rs.getString("last_seen"),
+                                                    rs.getString("date_reported"));
                                         }
                                         System.out.println("---------------------------------------------------------------------------------------------------------------");
                                     } catch (SQLException e) {
                                         System.out.println("Error fetching records: " + e.getMessage());
                                     }
+                                    break;
 
-                                    // Now ask which to update
-                                    System.out.print("Enter ID to update: ");
+                                case 2: // Update Reports
+                                    System.out.print("Enter report ID to update: ");
                                     int updateId = sc.nextInt();
                                     sc.nextLine();
-                                    System.out.print("Enter New Item: ");
-                                    item = sc.nextLine();
-                                    System.out.print("Enter New Description: ");
-                                    des = sc.nextLine();
 
-                                    String updateQuery = "UPDATE lost_tbl SET r_item = ?, r_descrip = ? WHERE r_id = ?";
-                                    conf.updateRecord(updateQuery, item, des, updateId);
+                                    System.out.print("Enter new item Found/Lost name: ");
+                                    itemName = sc.nextLine();
+                                    System.out.print("Enter new description: ");
+                                    itemDesc = sc.nextLine();
+
+                                    String updateItem = "UPDATE item_tbl SET item_name = ?, item_description = ? WHERE item_id = (SELECT item_id FROM report_tbl WHERE report_id = ?)";
+                                    conf.updateRecord(updateItem, itemName, itemDesc, updateId);
+                                    System.out.println("Report updated successfully!");
                                     break;
 
                                 case 3: // Delete Reports
-                                    try {
-                                        // Show records first
-                                        String selectQuery = "SELECT * FROM lost_tbl";
-                                        ResultSet rs = conf.getRecords(selectQuery);
-                                        System.out.printf("%-5s %-15s %-12s %-15s %-20s %-15s %-10s %-12s\n",
-                                                "ID", "Name", "Contact", "Item", "Description", "Location", "Category", "Date");
-                                        System.out.println("---------------------------------------------------------------------------------------------------------------");
-                                        while (rs.next()) {
-                                            System.out.printf("%-5d %-15s %-12d %-15s %-20s %-15s %-10s %-12s\n",
-                                                    rs.getInt("r_id"),
-                                                    rs.getString("r_name"),
-                                                    rs.getInt("r_contact"),
-                                                    rs.getString("r_item"),
-                                                    rs.getString("r_descrip"),
-                                                    rs.getString("r_loc"),
-                                                    rs.getString("r_category"),
-                                                    rs.getString("r_date"));
-                                        }
-                                        System.out.println("---------------------------------------------------------------------------------------------------------------");
-                                    } catch (SQLException e) {
-                                        System.out.println("Error fetching records: " + e.getMessage());
-                                    }
-
-                                    
-                                    System.out.print("Enter ID to delete: ");
+                                    System.out.print("Enter report ID to delete: ");
                                     int deleteId = sc.nextInt();
                                     sc.nextLine();
-                                    String deleteQuery = "DELETE FROM lost_tbl WHERE r_id = ?";
-                                    conf.deleteRecord(deleteQuery, deleteId);
+                                    String deleteReport = "DELETE FROM report_tbl WHERE report_id = ?";
+                                    conf.deleteRecord(deleteReport, deleteId);
+                                    System.out.println("Report deleted successfully!");
                                     break;
 
-                                case 4: 
+                                case 4:
                                     adminMenu = false;
                                     System.out.println("Logged out of Admin.");
                                     break;
@@ -185,6 +152,7 @@ public class Main {
                 if (attem == 3) {
                     System.out.println("Too many failed attempts. Returning to main menu...");
                 }
+
             } else if (opt == 3) {
                 run = false;
                 System.out.println("Exiting system...");

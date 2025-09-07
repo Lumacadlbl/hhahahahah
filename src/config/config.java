@@ -8,8 +8,8 @@ public class config {
     public static Connection connectDB() {
         Connection con = null;
         try {
-            Class.forName("org.sqlite.JDBC"); // Load the SQLite JDBC driver
-            con = DriverManager.getConnection("jdbc:sqlite:Lost.db"); // Connect to Lost.db file
+            Class.forName("org.sqlite.JDBC"); 
+            con = DriverManager.getConnection("jdbc:sqlite:Lost.db"); 
             System.out.println("Connection Successful");
         } catch (ClassNotFoundException | SQLException e) {
             System.out.println("Connection Failed: " + e);
@@ -17,7 +17,7 @@ public class config {
         return con;
     }
 
-    // Insert record
+    // Insert record (no return)
     public void addRecord(String sql, Object... values) {
         try (Connection conn = this.connectDB();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -28,6 +28,24 @@ public class config {
         } catch (SQLException e) {
             System.out.println("Error adding record: " + e.getMessage());
         }
+    }
+
+    // Insert record and return generated ID
+    public int addRecordReturnId(String sql, Object... values) {
+        int id = -1;
+        try (Connection conn = this.connectDB();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            setParameters(pstmt, values);
+            pstmt.executeUpdate();
+            ResultSet rs = pstmt.getGeneratedKeys();
+            if (rs.next()) {
+                id = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error adding record: " + e.getMessage());
+        }
+        return id;
     }
 
     // Update record
@@ -56,7 +74,7 @@ public class config {
         }
     }
 
-    // Fetch records (for viewing)
+    // Fetch records
     public ResultSet getRecords(String sql, Object... values) {
         ResultSet rs = null;
         try {
@@ -93,9 +111,5 @@ public class config {
                 pstmt.setString(i + 1, values[i].toString());
             }
         }
-    }
-
-    public int addRecordWithId(String sql, String nm, int con, String item, String des, String seen, String cat, String rep) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
